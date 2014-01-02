@@ -1,9 +1,10 @@
 (ns potholer.scrape
   (:require [clojure.data.csv :as csv]
-            [clojure.java.io :as io]
-            [clojure.walk :as walk]
-            [clojure.set :as set]
-            [clojure.string :as str]))
+            [clojure.java.io  :as io]
+            [clojure.walk     :as walk]
+            [clojure.set      :as set]
+            [clojure.pprint   :as pp]
+            [clojure.string   :as str]))
 
                                         ; TODO
 
@@ -110,9 +111,19 @@
 (defn delete->> [ks-vec ms]
   (map #(apply (partial dissoc %) ks-vec) ms))
 
+                                        ; GLOSSARY
+(defn pprint-glossary [glossary]
+    (pp/print-table
+     [:original :readable]
+     (map #(let [[original readable] %]
+             (assoc {}
+               :original original
+               :readable readable))
+          (into (sorted-map) @glossary))))
+
                                         ; TEST
 (comment
-  (def records (-> "test.csv" lazy-csv with-headers))
+  (def records (-> "resources/test.csv" lazy-csv with-headers))
   (def glossary (-> "resources/glossary.edn" slurp read-string atom))
 
   (->> (take 50 records)
@@ -127,14 +138,4 @@
        (convert->> #(.toUpperCase %) [:foobar])
        (set-all->> [:q :foos :r] 42)
        (default-values->> {:q 9999 :r 0000 :s 1111}))
-
-  (require '[clojure.pprint :as pp])
-  (defn pprint-glossary []
-    (pp/print-table
-     [:original :readable]
-     (map #(let [[original readable] %]
-             (assoc {}
-               :original original
-               :readable readable))
-          (into (sorted-map) @glossary))))
 )
