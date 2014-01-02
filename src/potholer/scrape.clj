@@ -109,7 +109,7 @@
   (apply (partial dissoc m) ks-vec))
 
 (defn delete->> [ks-vec ms]
-  (map #(apply (partial dissoc %) ks-vec) ms))
+  (map #(delete % ks-vec) ms))
 
                                         ; GLOSSARY
 (defn pprint-glossary [glossary]
@@ -131,6 +131,7 @@
        (set-all->> [:a] "lastname")
        (set-all->> [:b] "middle")
        (set-all->> [:c] "   first   ")
+       (delete->> [:a])
        (trim->> [:a :b :c])
        (compute->> :foobar (fn [{:keys [a b c]}]
                              (str a ", " c " " b)))
