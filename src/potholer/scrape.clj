@@ -53,7 +53,9 @@
 (defn trim [m ks]
   (reduce (fn [memo k]
             (let [v (get m k)]
-              (assoc memo k (strict-trim v))))
+              (if v
+                (assoc memo k (strict-trim v))
+                m)))
           m
           ks))
 
@@ -62,10 +64,10 @@
 
 ;; DEFAULT VALUES
 (defn default-values [m txmap]
-  (merge-with (fn [l-val r-val]
-                (if (nil? l-val)
-                  r-val
-                  l-val))
+  (merge-with (fn [lval rval]
+                (if (nil? lval)
+                  rval
+                  lval))
               m
               txmap))
 
@@ -86,7 +88,6 @@
 
 ;; CONVERT
 (defn convert [m f ks]
-  ;; {:pre [(matching-keys? m ks)]}
   (reduce (fn [memo k] (assoc memo k (f (get m k))))
           m
           ks))
@@ -116,15 +117,16 @@
 
   (->> (take 50 records)
        (rename->> @glossary)
+       (set-all->> [:a] "lastname")
+       (set-all->> [:b] "middle")
+       (set-all->> [:c] "   first   ")
        (trim->> [:a :b :c])
        (compute->> :foobar (fn [{:keys [a b c]}]
-                             (str a ", " c b)))
-       (delete->> :junk-field)
-       (convert->> #(seq %) [:foobar])
-       (convert->> #(set-value! % nil) [:error_3]) ;; TODO: 
-       (default-values->> {:q 9999 :r 0000 :s 1111})
-
-       (set-all->> [:q :foobar :r] 42))
+                             (str a ", " c " " b)))
+       (delete->> [:junk-field])
+       (convert->> #(.toUpperCase %) [:foobar])
+       (set-all->> [:q :foos :r] 42)
+       (default-values->> {:q 9999 :r 0000 :s 1111}))
 
   (require '[clojure.pprint :as pp])
   (defn pprint-glossary []
